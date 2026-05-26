@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Edit Expense – Expense Tracker{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+
+        <div class="d-flex align-items-center mb-4">
+            <a href="/" class="btn btn-outline-secondary btn-sm me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h2 class="mb-0"><i class="bi bi-pencil me-2"></i>Edit Expense</h2>
+        </div>
+
+        {# ── Validation Errors ── #}
+        {% if errors %}
+        <div class="alert alert-danger">
+            <strong><i class="bi bi-exclamation-triangle me-2"></i>Please fix the following:</strong>
+            <ul class="mb-0 mt-1">
+                {% for error in errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" action="/edit/{{ expense.id }}" novalidate>
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label fw-semibold">
+                            Title <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="title" name="title" class="form-control"
+                               value="{{ expense.title }}" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="amount" class="form-label fw-semibold">
+                            Amount ($) <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" id="amount" name="amount" class="form-control"
+                               step="0.01" min="0.01"
+                               value="{{ expense.amount }}" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="form-label fw-semibold">
+                            Category <span class="text-danger">*</span>
+                        </label>
+                        <select id="category" name="category" class="form-select" required>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}"
+                                {% if expense.category == cat %}selected{% endif %}>
+                                {{ cat }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="date" class="form-label fw-semibold">
+                            Date <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" id="date" name="date" class="form-control"
+                               value="{{ expense.date.isoformat() }}" required />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="note" class="form-label fw-semibold">
+                            Note <span class="text-muted fw-normal">(optional)</span>
+                        </label>
+                        <textarea id="note" name="note" class="form-control" rows="3">{{ expense.note or '' }}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Update Expense
+                        </button>
+                        <a href="/" class="btn btn-outline-secondary">Cancel</a>
+                        <form method="post" action="/delete/{{ expense.id }}" class="ms-auto"
+                              onsubmit="return confirm('Delete this expense? This cannot be undone.')">
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i>Delete
+                            </button>
+                        </form>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

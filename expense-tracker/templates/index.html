@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}All Expenses – Expense Tracker{% endblock %}
+
+{% block content %}
+
+{# ── Flash / redirect messages ── #}
+{% if request.query_params.get("added") %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle me-2"></i>Expense added successfully.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% elif request.query_params.get("updated") %}
+<div class="alert alert-info alert-dismissible fade show" role="alert">
+    <i class="bi bi-pencil me-2"></i>Expense updated successfully.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% elif request.query_params.get("deleted") %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <i class="bi bi-trash me-2"></i>Expense deleted.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+{# ── Filter errors ── #}
+{% for error in errors %}
+<div class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+</div>
+{% endfor %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0"><i class="bi bi-list-ul me-2"></i>All Expenses</h2>
+    <a href="/add" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Add Expense
+    </a>
+</div>
+
+{# ── Filter Form ── #}
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-light fw-semibold">
+        <i class="bi bi-funnel me-2"></i>Filter Expenses
+    </div>
+    <div class="card-body">
+        <form method="get" action="/" class="row g-3">
+            <div class="col-md-3">
+                <label for="search" class="form-label">Search Title</label>
+                <input type="text" id="search" name="search" class="form-control"
+                       placeholder="Partial title..." value="{{ filters.search }}" />
+            </div>
+            <div class="col-md-3">
+                <label for="category" class="form-label">Category</label>
+                <select id="category" name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if filters.category == cat %}selected{% endif %}>
+                        {{ cat }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="date_from" class="form-label">From Date</label>
+                <input type="date" id="date_from" name="date_from" class="form-control"
+                       value="{{ filters.date_from }}" />
+            </div>
+            <div class="col-md-2">
+                <label for="date_to" class="form-label">To Date</label>
+                <input type="date" id="date_to" name="date_to" class="form-control"
+                       value="{{ filters.date_to }}" />
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i>Filter
+                </button>
+                <a href="/" class="btn btn-outline-secondary w-100">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ── Results summary ── #}
+{% if expenses %}
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <span class="text-muted">
+        Showing <strong>{{ expenses | length }}</strong> expense{% if expenses | length != 1 %}s{% endif %}
+    </span>
+    <span class="fw-bold text-primary fs-5">
+        Total: ${{ "%.2f"|format(total) }}
+    </span>
+</div>
+
+<div class="table-responsive shadow-sm rounded">
+    <table class="table table-hover table-bordered mb-0 align-middle">
+        <thead class="table-primary">
+            <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Amount</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Note</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in expenses %}
+            <tr>
+                <td class="text-muted small">{{ expense.id }}</td>
+                <td class="fw-semibold">{{ expense.title }}</td>
+                <td class="text-success fw-bold">${{ "%.2f"|format(expense.amount) }}</td>
+                <td>
+                    <span class="badge bg-secondary">{{ expense.category }}</span>
+                </td>
+                <td>{{ expense.date.strftime("%d %b %Y") }}</td>
+                <td class="text-muted small">{{ expense.note or "—" }}</td>
+                <td class="text-center">
+                    <a href="/edit/{{ expense.id }}" class="btn btn-sm btn-outline-primary me-1"
+                       title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="post" action="/delete/{{ expense.id }}" class="d-inline"
+                          onsubmit="return confirm('Delete this expense?')">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+
+{# ── Empty state ── #}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-inbox display-3 d-block mb-3"></i>
+    {% if filters.search or filters.category or filters.date_from or filters.date_to %}
+        <h5>No expenses match your filters.</h5>
+        <p class="mb-3">Try adjusting the search criteria or <a href="/">clear all filters</a>.</p>
+    {% else %}
+        <h5>No expenses recorded yet.</h5>
+        <p class="mb-3">Start tracking your spending by adding your first expense.</p>
+        <a href="/add" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Add First Expense
+        </a>
+    {% endif %}
+</div>
+
+{% endif %}
+
+{% endblock %}
